@@ -56,6 +56,7 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
 
       for (const item of col.items || []) {
         const label = item.itemLabel?.[lang] || item.itemLabel?.en || item.itemId;
+
         switch (item.type) {
           case "text":
           case "number":
@@ -67,6 +68,7 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
               margin: [0, 2],
             });
             break;
+
           case "checkbox":
             content.push({
               text: `${item.inputItem ? "[X]" : "[  ]"} ${label}`,
@@ -74,9 +76,9 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
               margin: [0, 2],
             });
             break;
+
           case "location":
           case "signature":
-          case "photo":
           case "drawing":
             content.push({
               text: `${label} [IMAGE PLACEHOLDER]`,
@@ -84,6 +86,24 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
               margin: [0, 2],
             });
             break;
+
+          case "photo":
+            // Si tiene URL de R2, se puede usar directamente
+            if (item.inputItem) {
+              content.push({
+                image: item.inputItem, // URL de R2
+                width: 250,
+                margin: [0, 4],
+              });
+            } else {
+              content.push({
+                text: `${label} [IMAGE PLACEHOLDER]`,
+                style: "itemLabel",
+                margin: [0, 2],
+              });
+            }
+            break;
+
           default:
             content.push({
               text: label,
@@ -95,7 +115,7 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
     }
   }
 
-  const docDefinition = {
+  return {
     pageSize: "LETTER",
     pageMargins: [20, 60, 20, 40],
     content,
@@ -105,6 +125,4 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
       itemLabel: { fontSize: 10, bold: true, color: "#444" },
     },
   };
-
-  return docDefinition;
 }
