@@ -1,7 +1,7 @@
 // src/utils/buildDocDefinitionMinimal.js
-// src\utils\buildDocDefinition.js
+
 /**
- * Construye un docDefinition básico para pdfMake solo usando el JSON
+ * Construye un docDefinition para pdfMake usando el JSON
  * @param {Object} data - Datos del formulario
  * @param {String} lang - Idioma ("es" o "en")
  * @returns {Object} docDefinition compatible con pdfMake
@@ -48,11 +48,14 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
     const columns = section.columns.sort((a, b) => a.order - b.order);
 
     for (const col of columns) {
-      content.push({
-        text: col.columnTitle?.[lang] || col.columnTitle?.en || "",
-        style: "itemLabel",
-        margin: [0, 4, 0, 2],
-      });
+      const colTitle = col.columnTitle?.[lang] || col.columnTitle?.en || "";
+      if (colTitle) {
+        content.push({
+          text: colTitle,
+          style: "itemLabel",
+          margin: [0, 4, 0, 2],
+        });
+      }
 
       for (const item of col.items || []) {
         const label = item.itemLabel?.[lang] || item.itemLabel?.en || item.itemId;
@@ -81,25 +84,36 @@ export function buildDocDefinitionMinimal(data, lang = "en") {
           case "signature":
           case "drawing":
             content.push({
-              text: `${label} [IMAGE PLACEHOLDER]`,
-              style: "itemLabel",
-              margin: [0, 2],
+              stack: [
+                { text: label, style: "itemLabel", margin: [0, 2] },
+                {
+                  canvas: [
+                    { type: "rect", x: 0, y: 0, w: 250, h: 100, r: 4, lineColor: "#888" }
+                  ],
+                  margin: [0, 2]
+                }
+              ]
             });
             break;
 
           case "photo":
-            // Si tiene URL de R2, se puede usar directamente
-            if (item.inputItem) {
+            if (item.inputSamplePhoto) {
               content.push({
-                image: item.inputItem, // URL de R2
+                image: item.inputSamplePhoto, // URL de R2
                 width: 250,
                 margin: [0, 4],
               });
             } else {
               content.push({
-                text: `${label} [IMAGE PLACEHOLDER]`,
-                style: "itemLabel",
-                margin: [0, 2],
+                stack: [
+                  { text: label, style: "itemLabel", margin: [0, 2] },
+                  {
+                    canvas: [
+                      { type: "rect", x: 0, y: 0, w: 250, h: 150, r: 4, lineColor: "#888" }
+                    ],
+                    margin: [0, 2]
+                  }
+                ]
               });
             }
             break;
