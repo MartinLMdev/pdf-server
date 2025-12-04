@@ -2,7 +2,7 @@
 import express from "express";
 import PdfPrinter from "pdfmake";
 import path from "path";
-import { buildDocDefinitionMinimal } from "./utils/buildDocDefinitionMinimal.js";
+import { buildDocDefinitionMinimal } from "./src/utils/buildDocDefinitionMinimal.js";
 
 const app = express();
 app.use(express.json({ limit: "50mb" })); // soporta JSON grande
