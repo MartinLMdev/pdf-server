@@ -22,24 +22,40 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
+const defaults = {
+  order_number: "WO-0000",
+  order_description: "No description",
+  customer: "N/A",
+  branch: "N/A",
+  location: "N/A",
+  leadTechnician: "N/A"
+};
+
 app.get("/", (req, res) => {
   res.send("PDF Server on Render is running!");
 });
 
 app.post("/generate-pdf", async (req, res) => {
   try {
-    const { sections } = req.body;
+    const data = req.body; // aquí está tu JSON
+    const orderData = { ...defaults, ...data }; // combinar con defaults
+
+    const { sections } = orderData;
 
     // Convertir URLs de fotos a base64
-    for (const section of sections) {
+    for (const section of sections || []) {
       for (const col of section.columns || []) {
         for (const item of col.items || []) {
-          if (item.type === "photo" && item.url) {
-            const response = await fetch(item.url);
+          if (
+            ["photo", "location", "signature", "drawing"].includes(item.type) &&
+            item.inputItem
+          ) {
+            const response = await fetch(item.inputItem);
             const buffer = await response.arrayBuffer();
-            const base64 = Buffer.from(buffer).toString("base64");
-            const ext = item.url.endsWith(".png") ? "png" : "jpeg";
-            item.base64 = `data:image/${ext};base64,${base64}`;
+            const ext = item.inputItem.endsWith(".png") ? "png" : "jpeg";
+            item.base64 = `data:image/${ext};base64,${Buffer.from(buffer).toString(
+              "base64"
+            )}`;
           }
         }
       }
@@ -47,23 +63,34 @@ app.post("/generate-pdf", async (req, res) => {
 
     // Construir docDefinition para pdfMake
     const docDefinition = {
-      content: sections.map((section) => {
+      content: (sections || []).map((section) => {
         const content = [];
 
         if (section.sectionTitle) {
-          content.push({ text: section.sectionTitle, style: "header" });
+          content.push({ text: section.sectionTitle.es || section.sectionTitle.en, style: "header" });
         }
 
         for (const col of section.columns || []) {
           for (const item of col.items || []) {
-            if (item.type === "text") {
-              content.push({ text: item.inputItem || "", margin: [0, 4] });
-            } else if (item.type === "photo" && item.base64) {
-              content.push({
-                image: item.base64,
-                width: 250,
-                margin: [0, 4],
-              });
+            const label = item.itemLabel?.es || item.itemLabel?.en || "";
+            switch (item.type) {
+              case "text":
+              case "textarea":
+                content.push({ text: `${label}: ${item.inputItem || ""}`, margin: [0, 4] });
+                break;
+              case "photo":
+              case "location":
+              case "signature":
+              case "drawing":
+                if (item.base64) {
+                  content.push({ image: item.base64, width: 250, margin: [0, 4] });
+                }
+                break;
+              case "checkbox":
+                content.push({ text: `${item.inputItem ? "[X]" : "[ ]"} ${label}`, margin: [0, 2] });
+                break;
+              default:
+                content.push({ text: label, margin: [0, 2] });
             }
           }
         }
@@ -81,10 +108,7 @@ app.post("/generate-pdf", async (req, res) => {
     pdfDoc.on("end", () => {
       const result = Buffer.concat(chunks);
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="report.pdf"'
-      );
+      res.setHeader("Content-Disposition", 'attachment; filename="report.pdf"');
       res.send(result);
     });
     pdfDoc.end();
@@ -93,6 +117,7 @@ app.post("/generate-pdf", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
