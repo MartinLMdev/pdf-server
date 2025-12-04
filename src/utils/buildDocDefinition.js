@@ -1,5 +1,5 @@
 // src/utils/buildDocDefinitionMinimal.js
-
+// src\utils\buildDocDefinition.js
 /**
  * Construye un docDefinition básico para pdfMake solo usando el JSON
  * @param {Object} data - Datos del formulario
