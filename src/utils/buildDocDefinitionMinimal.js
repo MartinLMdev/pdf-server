@@ -7,7 +7,9 @@
  * @returns {Object} docDefinition compatible con pdfMake
  */
 export function buildDocDefinitionMinimal(data, lang = "en") {
-  const content = [];
+  const content = [];  
+  console.log("Received data JSON in buildDocDefinitionMinimal:", JSON.stringify(data, null, 2));
+
 
   // Información de orden
   if (data.order_number) {

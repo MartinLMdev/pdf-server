@@ -37,7 +37,8 @@ app.get("/", (req, res) => {
 app.post("/generate-pdf", async (req, res) => {
   try {
     const data = req.body; // tu JSON
-    const orderData = { ...defaults, ...data }; // combinar con defaults
+    console.log("Received data JSON for PDF generation:", JSON.stringify(req.body, null, 2));
+    // const orderData = { ...defaults, ...data }; // combinar con defaults
 
     // Usar builder para generar docDefinition
     const docDefinition = buildDocDefinitionMinimal(orderData, "es");
