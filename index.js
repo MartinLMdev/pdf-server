@@ -2,10 +2,19 @@
 import express from "express";
 import PdfPrinter from "pdfmake";
 import path from "path";
-import { buildDocDefinition } from "./src/utils/buildDocDefinition.js"; // <- builder asincrónico
-import { link } from "fs";
+import cors from "cors";
+import { buildDocDefinition } from "./src/utils/buildDocDefinition.js";
 
 const app = express();
+app.use(
+  cors({
+    origin: [
+      "https://dohoodz.pages.dev",
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ],
+  })
+);
 app.use(express.json({ limit: "50mb" }));
 
 // ⚡ Rutas de fuentes
@@ -21,6 +30,25 @@ const fonts = {
 };
 
 const printer = new PdfPrinter(fonts);
+
+async function generatePdfBuffer(form, regulations, lang, field, options) {
+  const docDefinition = await buildDocDefinition(
+    form,
+    regulations,
+    lang,
+    field,
+    options
+  );
+
+  return new Promise((resolve, reject) => {
+    const pdf = pdfMake.createPdf(docDefinition);
+
+    pdf.getBuffer((buffer) => {
+      if (!buffer) return reject("Error generating PDF buffer");
+      resolve(buffer);
+    });
+  });
+}
 
 app.get("/", (req, res) => {
   res.send("PDF Server is running!");
@@ -45,7 +73,12 @@ app.post("/generate-pdf", async (req, res) => {
     };
 
     // ⚡ Esperar que buildDocDefinition procese imágenes y genere docDefinition
-    const docDefinition = await buildDocDefinition(sections, "en", "inputItem", options);
+    const docDefinition = await buildDocDefinition(
+      sections,
+      "en",
+      "inputItem",
+      options
+    );
 
     // Crear PDF
     const pdfDoc = printer.createPdfKitDocument(docDefinition);
@@ -61,6 +94,55 @@ app.post("/generate-pdf", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/generate-pdf-blob", async (req, res) => {
+  try {
+    const { form, regulations, lang, field, options } = req.body;
+
+    const buffer = await generatePdfBuffer(
+      form,
+      regulations,
+      lang,
+      field,
+      options
+    );
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": "inline; filename=report.pdf",
+    });
+
+    return res.send(buffer);
+  } catch (error) {
+    console.error("Error in /generate-pdf-blob:", error);
+    res.status(500).json({ error: "Error generating PDF Blob" });
+  }
+});
+
+app.post("/generate-pdf-base64", async (req, res) => {
+  try {
+    const { form, regulations, lang, field, options } = req.body;
+
+    const buffer = await generatePdfBuffer(
+      form,
+      regulations,
+      lang,
+      field,
+      options
+    );
+
+    const base64 = buffer.toString("base64");
+
+    return res.json({
+      fileName: "report.pdf",
+      mimeType: "application/pdf",
+      base64,
+    });
+  } catch (error) {
+    console.error("Error in /generate-pdf-base64:", error);
+    res.status(500).json({ error: "Error generating PDF Base64" });
   }
 });
 
