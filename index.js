@@ -1,11 +1,12 @@
-// src/index.js
+// index.js
 import express from "express";
 import PdfPrinter from "pdfmake";
 import path from "path";
-import { buildDocDefinitionMinimal } from "./src/utils/buildDocDefinitionMinimal.js";
+import { buildDocDefinition } from "./src/utils/buildDocDefinition.js"; // <- builder asincrónico
+import { link } from "fs";
 
 const app = express();
-app.use(express.json({ limit: "50mb" })); // soporta JSON grande
+app.use(express.json({ limit: "50mb" }));
 
 // ⚡ Rutas de fuentes
 const fontsPath = path.resolve("./fonts");
@@ -21,27 +22,30 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
-const defaults = {
-  order_number: "WO-0000",
-  order_description: "No description",
-  customer: "N/A",
-  branch: "N/A",
-  location: "N/A",
-  leadTechnician: "N/A"
-};
-
 app.get("/", (req, res) => {
-  res.send("PDF Server on Render is running!");
+  res.send("PDF Server is running!");
 });
 
 app.post("/generate-pdf", async (req, res) => {
   try {
-    const data = req.body; // tu JSON
-    console.log("Received data JSON for PDF generation:", JSON.stringify(req.body, null, 2));
-    // const orderData = { ...defaults, ...data }; // combinar con defaults
+    const sections = req.body; // asumimos que envías el array de sections directamente
+    // console.log("Received sections JSON:", JSON.stringify(sections, null, 2));
+    const options = {
+      mode: "open",
+      autoDownload: true,
+      headerLogo: "/logo-hoodz.png",
+      footerText: [
+        "4831 West Ave. #206 San Antonio, TX 78213\n",
+        "P: 210.265.1086   F: 210.569.6402\n",
+        "hoodz.eastsa@hoodz.us.com | www.hoodzinternational.com\n",
+      ],
+      showHeaderOnAllPages: true,
+      showFooterOnAllPages: true,
+      linkImages: false,
+    };
 
-    // Usar builder para generar docDefinition
-    const docDefinition = buildDocDefinitionMinimal(orderData, "es");
+    // ⚡ Esperar que buildDocDefinition procese imágenes y genere docDefinition
+    const docDefinition = await buildDocDefinition(sections, "en", "inputItem", options);
 
     // Crear PDF
     const pdfDoc = printer.createPdfKitDocument(docDefinition);

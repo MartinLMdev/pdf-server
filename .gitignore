@@ -1,3 +1,5 @@
 ps1/install.ps1
 ps1/*
 bak/*
+json/*
+node_modules/*
