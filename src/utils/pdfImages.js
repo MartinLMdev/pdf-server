@@ -49,7 +49,8 @@ export async function getImageBase64(url, type) {
       try {
         const res = await fetch(url);
         if (res.ok) {
-          buffer = await res.buffer();
+          // buffer = await res.buffer();
+          buffer = await res.arrayBuffer();
         } else {
           console.error(`Fetch error ${res.status} -> ${url}`);
         }

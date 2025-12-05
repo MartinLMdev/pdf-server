@@ -41,10 +41,13 @@ export async function buildDocDefinition(
 
     const title =
       section.sectionTitle?.[lang] || section.sectionTitle?.en || "";
+    const sectionsNoBreak = [0, 1]; // <--- Sections are joined Control
+
     content.push({
       text: title,
       style: "sectionTitle",
-      ...(index > 0 && { pageBreak: "before" }),
+      ...(index > 0 &&
+        !sectionsNoBreak.includes(index) && { pageBreak: "before" }),
     });
 
     const columns = (section.columns || []).sort((a, b) => a.order - b.order);
@@ -150,8 +153,7 @@ export async function buildDocDefinition(
             continue;
           }
 
-          const imageSrc =
-            item[field] || item.inputItem || item.inputSamplePhoto || null;
+          const imageSrc = item[field] || item.inputItem || null; // || item.inputSamplePhoto
 
           // 🔥 NUEVO: usar pdfImages.js optimizado
           if (
