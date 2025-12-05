@@ -1,7 +1,6 @@
 // src/utils/buildDocDefinition.js
 import { createWorkOrderSection } from "./helpers.js";
 import { getImageBase64 } from "./pdfImages.js";
-import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 
@@ -29,18 +28,25 @@ export async function buildDocDefinition(
   const orderData = {
     order_number: "WO-12345",
     order_description: "Kitchen exhaust cleaning",
-    customer: "Bubba Gump Shrimp Co.",
     branch: "SAN ANTONIO",
     location: "123 Street",
-    lead_technician: "John Doe",
     start_date: "2025-12-04 23:00",
     end_date: "2025-12-05 02:00",
+  };
+
+  const orderOptions = {
+    customer: "Bubba Gump Shrimp Co.",
+    lead_technician: "John Doe",
   };
 
   const content = [];
   const allRegulations = [];
   // Create work order section
-  const workOrderSection = createWorkOrderSection(orderData, options, "es");
+  const workOrderSection = createWorkOrderSection(
+    orderData,
+    orderOptions,
+    "es"
+  );
 
   // Insert it into sections
   sections.unshift(workOrderSection);
