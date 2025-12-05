@@ -26,10 +26,24 @@ export async function buildDocDefinition(
   const height = 220;
   const logoWidth = 120;
 
-  const content = [];
+  const orderData = {
+    order_number: "WO-12345",
+    order_description: "Kitchen exhaust cleaning",
+    customer: "Bubba Gump Shrimp Co.",
+    branch: "SAN ANTONIO",
+    location: "123 Street",
+    lead_technician: "John Doe",
+    start_date: "2025-12-04 23:00",
+    end_date: "2025-12-05 02:00",
+  };
 
-  // 🔥 NUEVO: acumulador global de todas las regulaciones
+  const content = [];
   const allRegulations = [];
+  // Create work order section
+  const workOrderSection = createWorkOrderSection(orderData, options, "es");
+
+  // Insert it into sections
+  sections.unshift(workOrderSection);
 
   const visibleSections = (sections || []).filter((s) => s.showSection);
   const sortedSections = visibleSections.sort((a, b) => a.order - b.order);
