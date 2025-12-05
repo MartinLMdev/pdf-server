@@ -56,25 +56,19 @@ app.get("/", (req, res) => {
 
 app.post("/generate-pdf", async (req, res) => {
   try {
-    const sections = req.body; // asumimos que envías el array de sections directamente
+    const {
+      sections,
+      regulations = [],
+      lang = "en",
+      field = "inputItem",
+      options = {},
+    } = req.body;
     // console.log("Received sections JSON:", JSON.stringify(sections, null, 2));
-    const options = {
-      mode: "open",
-      autoDownload: true,
-      headerLogo: "/logo-hoodz.png",
-      footerText: [
-        "4831 West Ave. #206 San Antonio, TX 78213\n",
-        "P: 210.265.1086   F: 210.569.6402\n",
-        "hoodz.eastsa@hoodz.us.com | www.hoodzinternational.com\n",
-      ],
-      showHeaderOnAllPages: true,
-      showFooterOnAllPages: true,
-      linkImages: false,
-    };
 
     // ⚡ Esperar que buildDocDefinition procese imágenes y genere docDefinition
     const docDefinition = await buildDocDefinition(
       sections,
+      regulations,
       "en",
       "inputItem",
       options
@@ -148,3 +142,17 @@ app.post("/generate-pdf-base64", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// const options = {
+//   mode: "open",
+//   autoDownload: true,
+//   headerLogo: "/logo-hoodz.png",
+//   footerText: [
+//     "4831 West Ave. #206 San Antonio, TX 78213\n",
+//     "P: 210.265.1086   F: 210.569.6402\n",
+//     "hoodz.eastsa@hoodz.us.com | www.hoodzinternational.com\n",
+//   ],
+//   showHeaderOnAllPages: true,
+//   showFooterOnAllPages: true,
+//   linkImages: false,
+// };
