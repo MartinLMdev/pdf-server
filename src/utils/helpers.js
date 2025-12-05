@@ -36,7 +36,7 @@ function buildTextItem(labelEn, labelEs, value) {
 }
 
 //  Create the Work Order Information section with the EXACT structure of the JSON
-export function createWorkOrderSection(orderData, options = {}, lang = "en") {
+export function createWorkOrderSection(orderData, lang = "en") {
   const sectionId = uid("sec");
   const columnId = uid("col");
 
@@ -67,13 +67,13 @@ export function createWorkOrderSection(orderData, options = {}, lang = "en") {
             "Descripción del Servicio",
             orderData.order_description
           ),
-          buildTextItem("Customer", "Cliente", options.customer),
+          buildTextItem("Customer", "Cliente", orderData.customer),
           buildTextItem("Branch", "Sucursal", orderData.branch),
           buildTextItem("Location", "Ubicación", orderData.location),
           buildTextItem(
             "Lead Technician",
             "Técnico Líder",
-            options.leadTechnician
+            orderData.leadTechnician
           ),
           buildTextItem("Start Date", "Fecha Inicio", startDate),
           buildTextItem("End Date", "Fecha Fin", endDate),

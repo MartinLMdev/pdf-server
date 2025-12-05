@@ -9,6 +9,7 @@ import path from "path";
  */
 export async function buildDocDefinition(
   sections,
+  regulations = [],
   lang = "en",
   field = "inputItem",
   options = {}
@@ -27,6 +28,8 @@ export async function buildDocDefinition(
 
   const orderData = {
     order_number: "WO-12345",
+    customer: "Bubba Gump Shrimp Co.",
+    leadTechnician: "John Doe",
     order_description: "Kitchen exhaust cleaning",
     branch: "SAN ANTONIO",
     location: "123 Street",
@@ -34,19 +37,11 @@ export async function buildDocDefinition(
     end_date: "2025-12-05 02:00",
   };
 
-  const orderOptions = {
-    customer: "Bubba Gump Shrimp Co.",
-    lead_technician: "John Doe",
-  };
-
+  const { workOrderSectionData } = options;
   const content = [];
   const allRegulations = [];
   // Create work order section
-  const workOrderSection = createWorkOrderSection(
-    orderData,
-    orderOptions,
-    "es"
-  );
+  const workOrderSection = createWorkOrderSection(workOrderSectionData, "en");
 
   // Insert it into sections
   sections.unshift(workOrderSection);
@@ -56,7 +51,7 @@ export async function buildDocDefinition(
 
   for (const [index, section] of sortedSections.entries()) {
     // Reiniciar regulaciones solo como texto, NO se hará push aquí
-    const regulations = [];
+    // const regulations = [];
     const regulationTexts = [];
 
     const title =

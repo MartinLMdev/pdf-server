@@ -31,9 +31,9 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
-async function generatePdfBuffer(form, regulations, lang, field, options) {
+async function generatePdfBuffer(sections, regulations, lang, field, options) {
   const docDefinition = await buildDocDefinition(
-    form,
+    sections,
     regulations,
     lang,
     field,
@@ -99,10 +99,10 @@ app.post("/generate-pdf", async (req, res) => {
 
 app.post("/generate-pdf-blob", async (req, res) => {
   try {
-    const { form, regulations, lang, field, options } = req.body;
+    const { sections, regulations, lang, field, options } = req.body;
 
     const buffer = await generatePdfBuffer(
-      form,
+      sections,
       regulations,
       lang,
       field,
@@ -123,10 +123,10 @@ app.post("/generate-pdf-blob", async (req, res) => {
 
 app.post("/generate-pdf-base64", async (req, res) => {
   try {
-    const { form, regulations, lang, field, options } = req.body;
+    const { sections, regulations, lang, field, options } = req.body;
 
     const buffer = await generatePdfBuffer(
-      form,
+      sections,
       regulations,
       lang,
       field,
