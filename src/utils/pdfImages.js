@@ -33,20 +33,24 @@ async function processBuffer(buffer, type) {
 // Returns optimized Base64 from a URL or placeholder
 export async function getImageBase64(url, type) {
   try {
+    // Normalize URL
+    const safeUrl = typeof url === "string" ? url.trim() : "";
+    const cacheKey = `${type}::${safeUrl || "no-url"}`;
+
     // 1. Cache
-    if (imageCache.has(url)) return imageCache.get(url);
+    if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
 
     let buffer = null;
 
     // 2. Try fetching from URL
-    if (url) {
+    if (safeUrl) {
       try {
-        const res = await fetch(url);
+        const res = await fetch(safeUrl);
         if (res.ok) {
           // buffer = await res.buffer();
           buffer = await res.arrayBuffer();
         } else {
-          console.error(`Fetch error ${res.status} -> ${url}`);
+          console.error(`Fetch error ${res.status} -> ${safeUrl}`);
         }
       } catch (err) {
         console.error("Fetch exception:", err);
@@ -62,11 +66,19 @@ export async function getImageBase64(url, type) {
         location: "./assets/location.jpg",
       };
 
-      const p = path.resolve(placeholderMap[type] || "");
+      const placeholderPath = placeholderMap[type];
 
-      if (fs.existsSync(p)) buffer = fs.readFileSync(p);
-      else {
-        console.error("Placeholder not found:", p);
+      if (!placeholderPath) {
+        console.error("No placeholder for type:", type);
+        return null;
+      }
+
+      const absolutePath = path.resolve(placeholderPath);
+
+      if (fs.existsSync(absolutePath)) {
+        buffer = fs.readFileSync(absolutePath);
+      } else {
+        console.error("Placeholder not found:", absolutePath);
         return null;
       }
     }
@@ -75,10 +87,13 @@ export async function getImageBase64(url, type) {
     buffer = await processBuffer(buffer, type);
 
     // 5. Convert to base64
-    const base64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
+    // const base64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
+    const base64 = `data:image/jpeg;base64,${Buffer.from(buffer).toString(
+      "base64"
+    )}`;
 
     // 6. Save in cache
-    imageCache.set(url, base64);
+    imageCache.set(cacheKey, base64);
 
     return base64;
   } catch (err) {
