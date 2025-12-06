@@ -4,15 +4,11 @@ import path from "path";
 import fetch from "node-fetch";
 import sharp from "sharp";
 
-/**
- * Cache en memoria para evitar descargar imágenes repetidas
- */
+// In-memory cache to avoid downloading repeated images
 const imageCache = new Map();
 
-/**
- * Redimensiona imágenes para que pdfMake NO reviente memoria.
- * Máx recomendado para fotos: 900px
- */
+// Resize images so that pdfMake doesn't run out of memory.
+// Recommended max size for photos: 900px
 async function processBuffer(buffer, type) {
   try {
     const maxSize = {
@@ -34,17 +30,15 @@ async function processBuffer(buffer, type) {
   }
 }
 
-/**
- * Retorna Base64 optimizado de una URL o placeholder
- */
+// Returns optimized Base64 from a URL or placeholder
 export async function getImageBase64(url, type) {
   try {
-    // 1. CACHE
+    // 1. Cache
     if (imageCache.has(url)) return imageCache.get(url);
 
     let buffer = null;
 
-    // 2. Intentar fetch desde URL
+    // 2. Try fetching from URL
     if (url) {
       try {
         const res = await fetch(url);
@@ -59,7 +53,7 @@ export async function getImageBase64(url, type) {
       }
     }
 
-    // 3. Si no hay buffer, usar placeholder
+    // 3. If no buffer, use placeholder
     if (!buffer) {
       const placeholderMap = {
         photo: "./assets/kitchen01.jpg",
@@ -77,13 +71,13 @@ export async function getImageBase64(url, type) {
       }
     }
 
-    // 4. Reducir tamaño → crítico para 10–20 imágenes
+    // 4. Resize → critical for 10–20 images
     buffer = await processBuffer(buffer, type);
 
-    // 5. Convertir a base64
+    // 5. Convert to base64
     const base64 = `data:image/jpeg;base64,${buffer.toString("base64")}`;
 
-    // 6. Guardar en cache
+    // 6. Save in cache
     imageCache.set(url, base64);
 
     return base64;

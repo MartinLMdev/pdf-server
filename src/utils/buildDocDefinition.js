@@ -1,4 +1,5 @@
 // src/utils/buildDocDefinition.js
+import { normalizeSectionImageUrls } from "./normalizeImageUrls.js";
 import { createWorkOrderSection } from "./helpers.js";
 import { getImageBase64 } from "./pdfImages.js";
 import fs from "fs";
@@ -46,7 +47,11 @@ export async function buildDocDefinition(
   // Insert it into sections
   sections.unshift(workOrderSection);
 
-  const visibleSections = (sections || []).filter((s) => s.showSection);
+  // Normalize image URLs
+  const normalizedSections = normalizeSectionImageUrls(sections);
+  const visibleSections = (normalizedSections || []).filter(
+    (s) => s.showSection
+  );
   const sortedSections = visibleSections.sort((a, b) => a.order - b.order);
 
   for (const [index, section] of sortedSections.entries()) {
@@ -168,12 +173,11 @@ export async function buildDocDefinition(
             continue;
           }
 
-          const imageSrc = item[field] || item.inputItem || null; // || item.inputSamplePhoto
+          const imageSrc = (item[field] || item.inputItem || "").trim(); // || item.inputSamplePhoto
 
-          // 🔥 NUEVO: usar pdfImages.js optimizado
+          // Use pdfImages.js optimized function
           if (
-            ["photo", "signature", "drawing", "location"].includes(item.type) &&
-            imageSrc
+            ["photo", "signature", "drawing", "location"].includes(item.type)
           ) {
             try {
               const imgBase64 = await getImageBase64(imageSrc, item.type);
@@ -185,12 +189,14 @@ export async function buildDocDefinition(
                       width,
                       height,
                       alignment: "center",
-                      ...(options.linkImages ? { link: imageSrc } : {}),
+                      ...(options.linkImages && imageSrc
+                        ? { link: imageSrc }
+                        : {}),
                     }
                   : ""
               );
             } catch (err) {
-              console.error("Error imagen:", imageSrc, err);
+              console.error("Error image processing:", imageSrc, err);
               extraRow.push("");
             }
           } else if (item.type === "textarea") {
@@ -222,9 +228,7 @@ export async function buildDocDefinition(
     }
   }
 
-  // ---------------------------------------------------------
-  // 🔥🔥 NUEVO: AGREGAR REGULACIONES AL FINAL DEL REPORTE
-  // ---------------------------------------------------------
+  // New: Add Regulations at the end of the Report
   if (allRegulations.length > 0) {
     content.push({
       text: "REGULATIONS / CUMPLIMIENTO NORMATIVO",
@@ -246,9 +250,7 @@ export async function buildDocDefinition(
     }
   }
 
-  // -----------------------------------------------------
-  // DOCDEFINITION FINAL
-  // -----------------------------------------------------
+  // Final DocDefinition
   const docDefinition = {
     pageSize: "LETTER",
     pageMargins: [20, 100, 20, 60],
