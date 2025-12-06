@@ -40,17 +40,26 @@ export function createWorkOrderSection(orderData, lang = "en") {
   const sectionId = uid("sec");
   const columnId = uid("col");
 
-  const startDate = orderData.start_date
-    ? new Date(orderData.start_date).toLocaleDateString(
-        lang === "es" ? "es-MX" : "en-US"
-      )
-    : "N/A";
+  const parseDateOrFallback = (dateValue, fallbackEn, fallbackEs) => {
+    const d = new Date(dateValue);
+    if (dateValue && !isNaN(d)) {
+      return d.toLocaleDateString(lang === "es" ? "es-MX" : "en-US");
+    } else {
+      return lang === "es" ? fallbackEs : fallbackEn;
+    }
+  };
 
-  const endDate = orderData.end_date
-    ? new Date(orderData.end_date).toLocaleDateString(
-        lang === "es" ? "es-MX" : "en-US"
-      )
-    : "N/A";
+  // Ejemplo de uso:
+  const startDate = parseDateOrFallback(
+    orderData.start_date,
+    "Pending",
+    "Pendiente"
+  );
+  const endDate = parseDateOrFallback(
+    orderData.end_date,
+    "In Progress",
+    "En Progreso"
+  );
 
   return {
     order: 0,
